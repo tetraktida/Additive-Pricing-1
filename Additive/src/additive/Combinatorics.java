@@ -1,15 +1,17 @@
 package additive;
 
+import java.math.BigInteger;
+
 public class Combinatorics {
 	static int choose(int n, int k)
 	{
-		int a=1;
-		int b=1;
+		BigInteger a=BigInteger.ONE;
+		BigInteger b=BigInteger.ONE;
 		for(int i=1;i<=k;i++) {
-			a*=(n-i+1);
-			b*=i;
+			a=a.multiply(BigInteger.valueOf(n-i+1));
+			b=b.multiply(BigInteger.valueOf(i));
 		}
 		
-		return a/b;
+		return a.divide(b).intValueExact();
 	}
 }
