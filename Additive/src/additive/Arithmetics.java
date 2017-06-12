@@ -1,30 +1,7 @@
 package additive;
 
 public class Arithmetics {
-		private static int mult = 0;
-		private static String pad;
-		private static int shift = 5;
 		private static int prec = 100000;
-		
-		static int getShiftMultiplier()
-		{
-			if(mult == 0) {
-				mult = 1;
-				for(int i=0; i<shift; ++i) {
-					mult *= 10;
-				}
-			}
-			return mult;
-		}
-		
-		static void setShift(int k)
-		{
-			if(k >= 0) {
-				shift = k;
-				mult = 0;
-				pad = null;
-			}
-		}
 		
 		static void setPrecision(int p)
 		{
@@ -36,21 +13,10 @@ public class Arithmetics {
 			}
 		}
 		
-		static String getPadding()
-		{
-			if(pad == null) {
-				pad = "";
-				for(int i=0; i<shift; ++i) {
-					pad = "0" + pad;
-				}
-			}
-			return pad;
-		}
-		
 		/*
 		 * Remove trailing decimal 0s and fix infinite number of decimal 9s problem.
 		 */
-		static String sanitizeDouble(double num, boolean div)
+		static String sanitizeDouble(double num)
 		{
 			
 			num = Math.floor(Math.abs(num)*prec)/prec;
@@ -70,26 +36,6 @@ public class Arithmetics {
 				
 				number = number.substring(0, move+1) + "." + number.substring(move+1, number.length()); 
 			}
-			
-			int n;
-			
-			if(div) {
-				number = Arithmetics.getPadding() + number;
-				n = number.length();
-				
-				int pos = number.indexOf('.');
-				
-				number = number.substring(0, pos - shift)
-						+ "."
-						+ number.substring(pos - shift,pos)
-						+ number.substring(pos+1, n);
-							
-				number = number.replaceFirst("0*", "");
-				
-				if(number.charAt(0) == '.')
-					number = '0' + number;
-			}
-			
 			
 			number = number + "A";
 			

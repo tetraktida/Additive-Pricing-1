@@ -226,11 +226,7 @@ public class ProductDistribution {
 		if(i<n) {
 			Distribution d = distrs.get(i);
 			for(int j=0;j<m;++j) {
-				if(integer) {
-					acc[i]=d.getVal(j)*Arithmetics.getShiftMultiplier();
-				} else {
-					acc[i]=d.getVal(j);
-				}
+				acc[i]=d.getVal(j);
 				ratRec(constraints,cur,i+1,acc, integer, x);
 			}
 		} else {
@@ -271,11 +267,7 @@ public class ProductDistribution {
 			Distribution d = distrs.get(i);
 			for(int j=0;j<m;++j)
 			{
-				if(integer) {
-					acc[i]=d.getVal(j)*Arithmetics.getShiftMultiplier();
-				} else {
-					acc[i]=d.getVal(j);
-				}
+				acc[i]=d.getVal(j);
 				truthRec(constraints,cur,i+1,acc,integer,x);
 			}
 		} else {
@@ -375,9 +367,9 @@ public class ProductDistribution {
 			s = s + "(";
 			
 			for(int j=0;j<m-1;++j)
-				s+= Arithmetics.sanitizeDouble(distrs.get(0).getVal(j),false)+": "+acc[j] + ", ";
+				s+= Arithmetics.sanitizeDouble(distrs.get(0).getVal(j))+": "+acc[j] + ", ";
 			
-			s+= Arithmetics.sanitizeDouble(distrs.get(0).getVal(m-1),false)+": "+acc[m-1] + ")";
+			s+= Arithmetics.sanitizeDouble(distrs.get(0).getVal(m-1))+": "+acc[m-1] + ")";
 			
 			valuations.add(s);
 		}	

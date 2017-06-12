@@ -25,9 +25,9 @@ public class GUI {
 
 		private static JCheckBox iid;
 		
-		private static JComboBox Shift, Precision;
+		private static JComboBox Precision;
 		
-		private static JTextPane values, obj, menu, scaleText, precisionText;
+		private static JTextPane values, obj, menu, precisionText;
 		
 		private static ArrayList<JTextPane> captions;
 		
@@ -144,7 +144,6 @@ public class GUI {
 				solve.setEnabled(false);
 				solveInt.setEnabled(false);
 				addItem.setEnabled(false);
-				Shift.setEnabled(false);
 				Precision.setEnabled(false);
 			
 			
@@ -336,7 +335,6 @@ public class GUI {
 						{
 								if(validate()) {
 									Arithmetics.setPrecision(Precision.getSelectedIndex()+3);
-									Arithmetics.setShift(Shift.getSelectedIndex());
 									try {
 										solve(false);
 									} catch (GRBException e1) {
@@ -358,7 +356,6 @@ public class GUI {
 						{
 								if(validate()) {
 									Arithmetics.setPrecision(Precision.getSelectedIndex()+3);
-									Arithmetics.setShift(Shift.getSelectedIndex());
 									try {
 										solve(true);
 									} catch (GRBException e1) {
@@ -388,14 +385,9 @@ public class GUI {
 					String[] options = { "0", "1", "2", "3", "4", "5", "6", "7" };
 					String[] optionsP = { "3 decimals", "4 decimals", "5 decimals", "6 decimals", "7 decimals", "8 decimals"};
 
-					Shift = new JComboBox(options);
 					Precision = new JComboBox(optionsP);
 					
 					GroupLayout.SequentialGroup group = layout.createSequentialGroup();
-					
-					scaleText = createTextPane(" Scale:", 12, false);
-					
-					scaleText.setVisible(true);
 					
 					precisionText = createTextPane("Precision:", 12, false);
 					
@@ -405,8 +397,6 @@ public class GUI {
 					group.addComponent(solveInt);
 					if(!id)
 						group.addComponent(addItem);
-					group.addComponent(scaleText);
-					group.addComponent(Shift);
 					group.addComponent(precisionText);
 					group.addComponent(Precision);
 					
@@ -417,8 +407,6 @@ public class GUI {
 					rows[5].addComponent(solveInt);
 					if(!id)
 						rows[5].addComponent(addItem);
-					rows[5].addComponent(scaleText);
-					rows[5].addComponent(Shift);
 					rows[5].addComponent(precisionText);
 					rows[5].addComponent(Precision);
 					
@@ -614,13 +602,13 @@ public class GUI {
 					q=m;
 					
 		    	for(int j=0; j<q; j++) {
-		    		data[i][1]+=Arithmetics.sanitizeDouble(itSol.next(), true);
+		    		data[i][1]+=Arithmetics.sanitizeDouble(itSol.next());
 		    		if(j<q-1)
 		    			data[i][1]+=", ";
 		    	}
 		    	data[i][1]+=")";
 		    	
-		    	data[i][2] = Arithmetics.sanitizeDouble(itSol.next(), true);
+		    	data[i][2] = Arithmetics.sanitizeDouble(itSol.next());
 		    }
 			
 			JTable t = new JTable(data,columnNames);
@@ -656,7 +644,7 @@ public class GUI {
 		 */
 		private static void showResults(double objValue, JTable t)
 		{
-			obj.setText("Optimal Expected Revenue: " + Arithmetics.sanitizeDouble(objValue,true));
+			obj.setText("Optimal Expected Revenue: " + Arithmetics.sanitizeDouble(objValue));
 			obj.setVisible(true);
 			menu.setText("Menu (" + t.getRowCount() + " entries)");
 			menu.setVisible(true);
@@ -685,7 +673,6 @@ public class GUI {
 			solveInt.setEnabled(true);
 			if(!id)
 				addItem.setEnabled(true);
-			Shift.setEnabled(true);
 			Precision.setEnabled(true);
 			obj.setVisible(false);
 			menu.setVisible(false);
@@ -729,9 +716,7 @@ public class GUI {
 			values.setVisible(false);
 			solve.setVisible(false);
 			solveInt.setVisible(false);
-			Shift.setVisible(false);
 			Precision.setVisible(false);
-			scaleText.setVisible(false);
 			precisionText.setVisible(false);
 			
 			if(!iid.isSelected()) {
@@ -756,7 +741,7 @@ public class GUI {
 		{
 			String v, p;
 			Boolean formatError=false;
-			double sum,q;
+			double q;
 			JTable t;
 			
 			int n = inputTables.size();
@@ -767,8 +752,6 @@ public class GUI {
 				
 				if(t.getCellEditor()!=null)
 					t.getCellEditor().stopCellEditing();
-				
-				sum=0;
 				
 				for(int j=0; j<m; ++j){
 					v = t.getValueAt(j, 0).toString();
@@ -790,19 +773,11 @@ public class GUI {
 							formatError = true;
 							t.setValueAt("", j, 1);
 						}
-						sum+=q;
 					} catch (NumberFormatException ex) {
 						formatError = true;
 						t.setValueAt("", j, 1);
 					}	
-				}
-				
-				/*if(Arithmetic.sanitizeDouble(sum,false).equals("1")) {
-					formatError = true;
-					for(int j=0; j<m; ++j)
-						t.setValueAt("", j, 1);
-				}*/
-					
+				}	
 			}
 			
 			if (formatError) {

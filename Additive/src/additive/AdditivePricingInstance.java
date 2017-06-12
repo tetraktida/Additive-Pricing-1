@@ -14,32 +14,33 @@ import gurobi.GRBVar;
 
 public class AdditivePricingInstance {
 	private ProductDistribution productDist;
-	private int m;
-	private int n;
-	private boolean iid;
+	private int m; // Number of values
+	private int n; // Number of items
+	private boolean iid; // iid instance
 	
 	/*
-	 * Constructor.
+	 * Non-IID Constructor.
 	 */
 	AdditivePricingInstance(ArrayList<JTable> inputTables) {
 		JTable t;
-		n = inputTables.size();
-		m = 0;
+		n = 0;
+		m = inputTables.get(0).getRowCount();
 		iid = false;
 		
 		productDist = new ProductDistribution();
-				
-		for(int i=0;i<n;++i) {
-			t = inputTables.get(i);
+		
+		Iterator<JTable> it = inputTables.iterator();
+		
+		while(it.hasNext()) {
+			t = it.next();
+			
 			productDist.addItem();
-			
-			if(m < t.getRowCount()) {
-				m = t.getRowCount();				
-			}
-			
+				
 			for(int j=0;j<m;++j) {
-				productDist.add(i,Double.parseDouble(t.getValueAt(j, 0).toString()), Double.parseDouble(t.getValueAt(j, 1).toString()));
+				productDist.add(n,Double.parseDouble(t.getValueAt(j, 0).toString()), Double.parseDouble(t.getValueAt(j, 1).toString()));
 			}
+			
+			n++;
 		}
 	}
 	
@@ -66,7 +67,7 @@ public class AdditivePricingInstance {
 	/*
 	 * Create a list with all valuation vectors.
 	 */
-	void enumValuations(ArrayList<String> valuations)
+	public void enumValuations(ArrayList<String> valuations)
 	{
 		if(iid)
 			productDist.enumSymetricValuationsStr(valuations);
@@ -75,12 +76,12 @@ public class AdditivePricingInstance {
 		
 	}
 	
-	int getValIndex(int i, int k, int m)
+	private int getValIndex(int i, int k, int m)
 	{
 		return i*(m+1)+k;
 	}
 	
-	int getPriceIndex(int i, int m)
+	private int getPriceIndex(int i, int m)
 	{
 		return i*(m+1)+m;
 	}
@@ -185,13 +186,6 @@ public class AdditivePricingInstance {
 						}
 					}
 					
-					/*
-					for(int k=0;k<m;k++) {
-						for(int l=0;l<m;l++) {
-							constraint[getValIndex(j, k, m)] = -val[k]*support[k];
-						}
-					}
-					*/
 					constraint[getPriceIndex(j, m)]=1;
 					
 					GRBLinExpr expr2 = new GRBLinExpr(expr);
@@ -201,11 +195,6 @@ public class AdditivePricingInstance {
 					expr2.addTerm(constraint[getPriceIndex(j, m)], x[getPriceIndex(j, m)]);
 					
 					lp.addConstr(expr2, GRB.GREATER_EQUAL, 0, "c"+ q++);
-					
-	/*				for(int k=0;k<varNo;k++)
-						System.out.print(constraint[k]+" ");
-					System.out.println();
-					*/
 					
 					for(int k=0;k<m+1;k++)
 						constraint[getValIndex(j, k, m)] = 0;
@@ -218,17 +207,7 @@ public class AdditivePricingInstance {
 			constraint[getPriceIndex(i, m)] = 0;
 		}
 		
-		
-	/*	for(int i=0;i<valNo;i++) {
-			for(int k=0;k<m;k++) {
-				constraint[getValIndex(i, k, m)] = 1;
-				lp.addConstraint(new LinearBiggerThanEqualsConstraint(constraint, 0, "c"+ q++));
-				lp.addConstraint(new LinearSmallerThanEqualsConstraint(constraint, 1, "c"+ q++));
-				constraint[getValIndex(i, k, m)] = 0;
-			}
-		}
-	*/
-		//lp.setMinProblem(false);
+	
 		
 		lp.optimize();
 		
@@ -244,25 +223,13 @@ public class AdditivePricingInstance {
 		int j=0;
 		
 		while(it.hasNext()) {
-			int a[] = it.next();
 			for(int i = 0; i<m; i++) {
-				//System.out.print(a[i]+": ");
-			}
-			
-			for(int i = 0; i<m; i++) {
-				//System.out.print(" " + solution[getValIndex(j, i, m)]);
 				sol.add(solution[getValIndex(j, i, m)]);
 			}
 			
-			//System.out.println(" " + solution[getPriceIndex(j, m)]);
-			
 			sol.add(solution[getPriceIndex(j, m)]);
-			
-			//System.out.println(" " + objective[getPriceIndex(j, m)]);
 			j++;
 		}
-		
-		
 		
 		return lp.get(GRB.DoubleAttr.ObjVal);
 	}
@@ -270,7 +237,7 @@ public class AdditivePricingInstance {
 	/*
 	 * Solve this instance and return the value of the objective function and the solution in a list.	
 	 */
-	double solve(ArrayList<Double> sol, boolean integer) throws GRBException
+	public double solve(ArrayList<Double> sol, boolean integer) throws GRBException
 	{	
 		if(iid) {
 			return solveIID(sol,integer);
@@ -280,12 +247,18 @@ public class AdditivePricingInstance {
 		
 		GRBVar x[] = new GRBVar[varNo];
 		
-		GRBEnv env   = new GRBEnv("mip1.log");
+		GRBEnv env   = new GRBEnv();
 	    GRBModel  lp = new GRBModel(env);
+	    
+	    char mode = GRB.CONTINUOUS;
+	    
+	    if (integer) {
+	    	mode = GRB.BINARY;
+	    }
 	    
 		for(int i=0; i< varNo; i++) {
 			if((i+1)%(n+1) != 0) {
-				x[i] = lp.addVar(0.0, 1, 0.0, GRB.CONTINUOUS,"x"+i);
+				x[i] = lp.addVar(0.0, 1, 0.0, mode,"x"+i);
 			} else {
 				x[i] = lp.addVar(0.0, GRB.INFINITY, 0.0, GRB.CONTINUOUS,"p"+i);
 			}
@@ -295,23 +268,20 @@ public class AdditivePricingInstance {
 		
 		productDist.calculateObjective(objective, x);
 		
-		int i=0;
 		
 		lp.setObjective(objective,GRB.MAXIMIZE);
-		
-		ArrayList<ArrayList<Double>> constraints = new ArrayList<ArrayList<Double>>();
 		
 		ArrayList<GRBLinExpr> constr = new ArrayList<GRBLinExpr>();
 		
 		productDist.calcRationalityConstraints(constr, integer,x);
 		productDist.calcTruthfulnessConstraints(constr, integer, x);
 		
-		Iterator<GRBLinExpr> it1 = constr.iterator();
+		Iterator<GRBLinExpr> it = constr.iterator();
 		
 		int j=0;
 		
-		while (it1.hasNext()) {
-			GRBLinExpr expr = it1.next();
+		while (it.hasNext()) {
+			GRBLinExpr expr = it.next();
 			
 			lp.addConstr(expr, GRB.LESS_EQUAL, 0, "c"+ ++j);
 		}
@@ -320,17 +290,11 @@ public class AdditivePricingInstance {
 		
 		double solution[] = new double[varNo];
 		
-		for(i=0; i< varNo; i++)
+		for(int i=0; i< varNo; i++)
 			solution[i] = x[i].get(GRB.DoubleAttr.X);
 		
-		int mul = Arithmetics.getShiftMultiplier();
-		
-		for(i=0; i<solution.length; ++i) {
-			if(integer && (i+1)%(n+1) != 0) {
-				sol.add(solution[i]*mul);
-			} else {
+		for(int i=0; i<solution.length; ++i) {
 				sol.add(solution[i]);
-			}
 		}
 		
 		return lp.get(GRB.DoubleAttr.ObjVal);
