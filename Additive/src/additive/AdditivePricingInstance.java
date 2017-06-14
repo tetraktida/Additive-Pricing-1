@@ -112,7 +112,11 @@ public class AdditivePricingInstance {
 		
 	    GRBLinExpr obj = new GRBLinExpr();
 		
+		char mode = GRB.CONTINUOUS;
 		
+		if(integer) {
+			mode = GRB.BINARY;
+		}
 
 	    
 		for(int i=0; i< valNo; i++) {
@@ -120,8 +124,9 @@ public class AdditivePricingInstance {
 			double res = 1;
 			int remain = n;
 			
+			
 			for(int j =0; j<m; j++) {
-				x[getValIndex(i, j, m)] = lp.addVar(0.0, 1, 0.0, GRB.CONTINUOUS,"x"+getValIndex(i, j, m));
+				x[getValIndex(i, j, m)] = lp.addVar(0.0, 1, 0.0, mode,"x"+getValIndex(i, j, m));
 			}
 			
 			for(int j = 0; remain > 0; j++) {
@@ -212,24 +217,8 @@ public class AdditivePricingInstance {
 		lp.optimize();
 		
 		
-		
-		double solution[] = new double[varNo];
-		
 		for(int i=0; i< varNo; i++)
-			solution[i] = x[i].get(GRB.DoubleAttr.X);
-		
-		Iterator<int[]> it = valuations.iterator();
-		
-		int j=0;
-		
-		while(it.hasNext()) {
-			for(int i = 0; i<m; i++) {
-				sol.add(solution[getValIndex(j, i, m)]);
-			}
-			
-			sol.add(solution[getPriceIndex(j, m)]);
-			j++;
-		}
+			sol.add(x[i].get(GRB.DoubleAttr.X));
 		
 		return lp.get(GRB.DoubleAttr.ObjVal);
 	}

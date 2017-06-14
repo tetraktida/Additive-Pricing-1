@@ -1,6 +1,7 @@
 package additive;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 
 import gurobi.GRBLinExpr;
 import gurobi.GRBVar;
@@ -52,8 +53,25 @@ class Distribution {
 	void add(double v, double q)
 	{
 		SupportElement e = new SupportElement(v, q);
-				
+		
+		  Comparator<SupportElement> cmp=new Comparator<SupportElement>() {
+
+			    @Override
+			    public int compare(SupportElement o1, SupportElement o2) {
+			        // TODO Auto-generated method stub
+			        if(o1.getVal()<o2.getVal()) {
+			        	return -1;
+			        	}
+			        if(o1.getVal()==o2.getVal()){
+			        	return 0;
+			        }
+			        return 1;
+			    }
+		  };
+		
 		support.add(e);
+		
+		support.sort(cmp);
 	}
 	
 	/*
