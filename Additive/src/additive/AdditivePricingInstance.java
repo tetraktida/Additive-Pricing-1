@@ -105,7 +105,7 @@ public class AdditivePricingInstance {
 		double support[] = productDist.getIIDSupport();
 		double prob[] = productDist.getIIDProb();
 		
-		GRBEnv    env   = new GRBEnv("mip1.log");
+		GRBEnv    env   = new GRBEnv();
 	    GRBModel  lp = new GRBModel(env);
 	    
 	    GRBVar x[] = new GRBVar[varNo];
@@ -124,9 +124,23 @@ public class AdditivePricingInstance {
 			double res = 1;
 			int remain = n;
 			
+			int prev = -1;
 			
 			for(int j =0; j<m; j++) {
 				x[getValIndex(i, j, m)] = lp.addVar(0.0, 1, 0.0, mode,"x"+getValIndex(i, j, m));
+				if(valuations.get(i)[j] > 0) {
+					if(prev > -1) {
+						GRBLinExpr expr = new GRBLinExpr();
+						expr.addTerm(1, x[getValIndex(i, j, m)]);
+						expr.addTerm(-1, x[getValIndex(i, prev, m)]);
+						lp.addConstr(expr, GRB.GREATER_EQUAL, 0, j+"n"+ i);
+					}
+					prev = j;
+				} else {
+					GRBLinExpr expr = new GRBLinExpr();
+					expr.addTerm(1, x[getValIndex(i, j, m)]);
+					lp.addConstr(expr, GRB.EQUAL, 0, j+"n"+ i);
+				}
 			}
 			
 			for(int j = 0; remain > 0; j++) {
@@ -151,9 +165,9 @@ public class AdditivePricingInstance {
 			GRBLinExpr expr = new GRBLinExpr();
 			
 			int val[] = valuations.get(i);
-			for(int k=0;k<m;k++)
+			for(int k=0;k<m;k++) {
 				expr.addTerm(val[k]*support[k], x[getValIndex(i, k, m)]);
-			
+			}
 			expr.addTerm(-1, x[getPriceIndex(i, m)]);
 		
 			lp.addConstr(expr, GRB.GREATER_EQUAL, 0, "c"+ q++);
@@ -172,8 +186,9 @@ public class AdditivePricingInstance {
 					int a=0;
 					int b=0;
 					
-					for(int k=0;k<m+1;k++)
+					for(int k=0;k<m;k++)
 						constraint[getValIndex(j, k, m)] = 0;
+
 					
 					while(a < m && b < m) {
 						if(val1[a]<val2[b]) {
@@ -191,19 +206,16 @@ public class AdditivePricingInstance {
 						}
 					}
 					
-					constraint[getPriceIndex(j, m)]=1;
-					
 					GRBLinExpr expr2 = new GRBLinExpr(expr);
 					
 					for(int l = 0; l<m; l++)
 						expr2.addTerm(constraint[getValIndex(j, l, m)], x[getValIndex(j, l, m)]);
-					expr2.addTerm(constraint[getPriceIndex(j, m)], x[getPriceIndex(j, m)]);
+					expr2.addTerm(1, x[getPriceIndex(j, m)]);
 					
 					lp.addConstr(expr2, GRB.GREATER_EQUAL, 0, "c"+ q++);
 					
-					for(int k=0;k<m+1;k++)
+					for(int k=0;k<m;k++)
 						constraint[getValIndex(j, k, m)] = 0;
-					constraint[getPriceIndex(j, m)] = 0;
 				}
 			}
 			

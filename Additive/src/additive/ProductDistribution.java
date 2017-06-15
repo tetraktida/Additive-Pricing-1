@@ -54,7 +54,7 @@ class Distribution {
 	{
 		SupportElement e = new SupportElement(v, q);
 		
-		  Comparator<SupportElement> cmp=new Comparator<SupportElement>() {
+		Comparator<SupportElement> cmp=new Comparator<SupportElement>() {
 
 			    @Override
 			    public int compare(SupportElement o1, SupportElement o2) {

@@ -18,7 +18,7 @@ public class Arithmetics {
 		 */
 		static String sanitizeDouble(double num)
 		{
-			
+			prec = 1000000;
 			num = Math.floor(Math.abs(num)*prec)/prec;
 			
 			String number = Double.toString(num);
@@ -29,12 +29,22 @@ public class Arithmetics {
 				int move = Integer.parseInt(split[1]);
 				
 				number = split[0];
-				for(int i=0; i<move; i++)
-					number = number + "0";
 				
-				number = number.replaceFirst("[.]", "");
+				if(move > 0) {
+					for(int i=0; i<move; i++)
+						number = number + "0";
 				
-				number = number.substring(0, move+1) + "." + number.substring(move+1, number.length()); 
+					number = number.replaceFirst("[.]", "");
+				
+					number = number.substring(0, move) + "." + number.substring(move, number.length());
+				} else {
+					for(int i=0; i<-move-1; i++)
+						number = "0"+number;
+				
+					number = number.replaceFirst("[.]", "");
+				
+					number = 0 + "." + number;
+				}
 			}
 			
 			number = number + "A";
